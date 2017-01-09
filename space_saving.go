@@ -23,11 +23,13 @@ func (ss *SpaceSaving) Process(key string) {
 	ss.streamSummary.ReplaceWith(key)
 }
 
-func (ss *SpaceSaving) Report() {
-	for bucketElement := ss.streamSummary.bucketList.Front(); bucketElement != nil; bucketElement = bucketElement.Next() {
+func (ss *SpaceSaving) Report(k int) {
+	i := 0
+	for bucketElement := ss.streamSummary.bucketList.Front(); bucketElement != nil && i < k; bucketElement = bucketElement.Next() {
 		bucket := bucketElement.Value.(*Bucket)
 		for counterElement := bucket.counterList.Front(); counterElement != nil; counterElement = counterElement.Next() {
 			fmt.Printf("%s = %d\n", counterElement.Value.(*Counter).key, bucket.value)
+			i++
 		}
 	}
 }

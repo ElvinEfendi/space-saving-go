@@ -34,12 +34,10 @@ func (ss *StreamSummary) Len() int {
 }
 
 func (ss *StreamSummary) Add(key string) {
-	fmt.Printf("Adding %s\n", key)
 	ss.addWithCount(key, 1)
 }
 
 func (ss *StreamSummary) Increment(key string) error {
-	fmt.Printf("Incrementing %s\n", key)
 	counterElement, ok := ss.counters[key]
 	if !ok {
 		return fmt.Errorf("%s does not exist", key)
@@ -69,7 +67,6 @@ func (ss *StreamSummary) ReplaceWith(key string) {
 	delete(ss.counters, counterElement.Value.(*Counter).key)
 	ss.removeCounterFromBucket(counterElement)
 	ss.addWithCount(key, bucketElement.Value.(*Bucket).value+1)
-	fmt.Printf("Replaced %s with %s\n", counterElement.Value.(*Counter).key, key)
 }
 
 func (ss *StreamSummary) addWithCount(key string, count int) {
@@ -89,7 +86,7 @@ func (ss *StreamSummary) removeCounterFromBucket(counterElement *list.Element) {
 	counterList := bucketElement.Value.(*Bucket).counterList
 	counterList.Remove(counterElement)
 	// no need to delete bucket with value 1 as it is going to be created anyway
-	if counterList.Len() == 0 && bucketElement.Value.(*Bucket).value > 1 {
+	if counterList.Len() == 0 {
 		ss.bucketList.Remove(bucketElement)
 	}
 }
