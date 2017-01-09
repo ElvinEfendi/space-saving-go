@@ -85,10 +85,11 @@ func (ss *StreamSummary) addWithCount(key string, count int) {
 }
 
 func (ss *StreamSummary) removeCounterFromBucket(counterElement *list.Element) {
-	counterList := counterElement.Value.(*Counter).bucketElement.Value.(*Bucket).counterList
+	bucketElement := counterElement.Value.(*Counter).bucketElement
+	counterList := bucketElement.Value.(*Bucket).counterList
 	counterList.Remove(counterElement)
-	if counterList.Len() == 0 {
-		// TODO it would give some perf benefits to not remove a bucket with len = 1, as this going to be created often(always?)
-		ss.bucketList.Remove(counterElement.Value.(*Counter).bucketElement)
+	// no need to delete bucket with value 1 as it is going to be created anyway
+	if counterList.Len() == 0 && bucketElement.Value.(*Bucket).value > 1 {
+		ss.bucketList.Remove(bucketElement)
 	}
 }
