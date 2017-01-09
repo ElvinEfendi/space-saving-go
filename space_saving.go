@@ -27,7 +27,7 @@ func (ss *SpaceSaving) Report() {
 	for bucketElement := ss.streamSummary.bucketList.Front(); bucketElement != nil; bucketElement = bucketElement.Next() {
 		bucket := bucketElement.Value.(*Bucket)
 		for counterElement := bucket.counterList.Front(); counterElement != nil; counterElement = counterElement.Next() {
-			fmt.Printf("%s = %d, %T | %T\n", counterElement.Value.(*Counter).key, bucket.value, counterElement, counterElement.Value)
+			fmt.Printf("%s = %d\n", counterElement.Value.(*Counter).key, bucket.value)
 		}
 	}
 }

@@ -45,9 +45,14 @@ func (ss *StreamSummary) Increment(key string) error {
 		return fmt.Errorf("%s does not exist", key)
 	}
 
-	bucketElement := counterElement.Value.(*Counter).bucketElement
+	counter := counterElement.Value.(*Counter)
+	bucketElement := counter.bucketElement
 	count := bucketElement.Value.(*Bucket).value + 1
 	if bucketElement = bucketElement.Prev(); bucketElement == nil || bucketElement.Value.(*Bucket).value > count {
+		if bucket := counter.bucketElement.Value.(*Bucket); bucket.counterList.Len() == 1 {
+			bucket.value++
+			return nil
+		}
 		bucket := &Bucket{value: count}
 		bucket.counterList = list.New()
 		bucketElement = ss.bucketList.InsertBefore(bucket, counterElement.Value.(*Counter).bucketElement)
@@ -59,12 +64,12 @@ func (ss *StreamSummary) Increment(key string) error {
 }
 
 func (ss *StreamSummary) ReplaceWith(key string) {
-	fmt.Printf("Replacing %s\n", key)
 	bucketElement := ss.bucketList.Back()
 	counterElement := bucketElement.Value.(*Bucket).counterList.Front()
 	delete(ss.counters, counterElement.Value.(*Counter).key)
 	ss.removeCounterFromBucket(counterElement)
 	ss.addWithCount(key, bucketElement.Value.(*Bucket).value+1)
+	fmt.Printf("Replaced %s with %s\n", counterElement.Value.(*Counter).key, key)
 }
 
 func (ss *StreamSummary) addWithCount(key string, count int) {
