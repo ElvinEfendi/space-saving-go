@@ -1,78 +1,89 @@
 package space_saving
 
-import "container/list"
+import (
+	"container/list"
+	"fmt"
+)
 
 type Bucket struct {
-	value    int
-	counters *list.List
+	value       int
+	counterList *list.List
 }
 
 type Counter struct {
-	bucket *Bucket
+	bucketElement *list.Element
+	key           string
 }
 
 type StreamSummary struct {
-	buckets *List
-	keys    map[string]*Counter
+	bucketList *list.List
+	counters   map[string]*list.Element
 }
 
 func NewStreamSummary() *StreamSummary {
-	return &StreamSummary{buckets: make(Bucket), keys: make(map[string]*Counter)}
+	return &StreamSummary{bucketList: list.New(), counters: make(map[string]*list.Element)}
 }
 
 func (ss *StreamSummary) HasKey(key string) bool {
-	_, ok := ss.keys[key]
+	_, ok := ss.counters[key]
 	return ok
 }
 
 func (ss *StreamSummary) Len() int {
-	return len(ss.keys)
+	return len(ss.counters)
 }
 
 func (ss *StreamSummary) Add(key string) {
+	fmt.Printf("Adding %s\n", key)
 	ss.addWithCount(key, 1)
 }
 
-func (ss *StreamSummary) Increment(key string) {
-	counter, ok := ss.keys[key]
+func (ss *StreamSummary) Increment(key string) error {
+	fmt.Printf("Incrementing %s\n", key)
+	counterElement, ok := ss.counters[key]
 	if !ok {
 		return fmt.Errorf("%s does not exist", key)
 	}
 
-	count := counter.bucket.Value + 1
-	var bucket *Bucket
-	if bucket = counter.bucket.Prev(); bucket == nil || bucket.value > count {
-		bucket = &Bucket{value: count}
-		ss.buckets.InsertBefore(bucket, counter.bucket)
+	bucketElement := counterElement.Value.(*Counter).bucketElement
+	count := bucketElement.Value.(*Bucket).value + 1
+	if bucketElement = bucketElement.Prev(); bucketElement == nil || bucketElement.Value.(*Bucket).value > count {
+		bucket := &Bucket{value: count}
+		bucket.counterList = list.New()
+		bucketElement = ss.bucketList.InsertBefore(bucket, counterElement.Value.(*Counter).bucketElement)
 	}
-	ss.removeCounterFromBucket(bucket, counter)
-	counter.bucket = bucket
-	bucket.counters.PushFront(counter)
+	ss.removeCounterFromBucket(counterElement)
+	counterElement.Value.(*Counter).bucketElement = bucketElement
+	bucketElement.Value.(*Bucket).counterList.PushFront(counterElement.Value.(*Counter))
+	return nil
 }
 
 func (ss *StreamSummary) ReplaceWith(key string) {
-	bucket := ss.buckets.Back()
-	counter := bucket.counters.Front()
-	ss.removeCounterFromBucket(bucket, counter)
-	ss.addWithCount(key, bucket.Value+1)
+	fmt.Printf("Replacing %s\n", key)
+	bucketElement := ss.bucketList.Back()
+	counterElement := bucketElement.Value.(*Bucket).counterList.Front()
+	delete(ss.counters, counterElement.Value.(*Counter).key)
+	ss.removeCounterFromBucket(counterElement)
+	ss.addWithCount(key, bucketElement.Value.(*Bucket).value+1)
 }
 
 func (ss *StreamSummary) addWithCount(key string, count int) {
-	counter := &Counter{}
-	bucket := ss.buckets.Back()
-	if bucket == nil || bucket.Value > count {
-		bucket := &Bucket{Value: count}
-		ss.buckets.PushBack(bucket)
+	counter := &Counter{key: key}
+	bucketElement := ss.bucketList.Back()
+	if bucketElement == nil || bucketElement.Value.(*Bucket).value > count {
+		bucket := &Bucket{value: count}
+		bucket.counterList = list.New()
+		bucketElement = ss.bucketList.PushBack(bucket)
 	}
-	bucket.counters.PushFront(counter)
-	counter.bucket = bucket
-	ss.keys[key] = counter
+	ss.counters[key] = bucketElement.Value.(*Bucket).counterList.PushFront(counter)
+	counter.bucketElement = bucketElement
 }
 
-func (ss *StreamSummary) removeCounterFromBucket(counter *Counter, bucket *Bucket) {
-	counter.bucket.counters.Remove(counter)
-	if counter.bucket.counters.Len() == 0 {
+func (ss *StreamSummary) removeCounterFromBucket(counterElement *list.Element) {
+	counterList := counterElement.Value.(*Counter).bucketElement.Value.(*Bucket).counterList
+	counterList.Remove(counterElement)
+	if counterList.Len() == 0 {
 		// TODO it would give some perf benefits to not remove a bucket with len = 1, as this going to be created often(always?)
-		ss.buckets.Remove(counter.bucket)
+		ss.bucketList.Remove(counterElement.Value.(*Counter).bucketElement)
 	}
 }
