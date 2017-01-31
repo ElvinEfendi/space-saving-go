@@ -40,3 +40,15 @@ func TestTopWithoutEnoughCounters(t *testing.T) {
 	require.Equal(t, []string{"d", "a"}, topKeys)
 	require.Equal(t, []int{6, 4}, topCounts)
 }
+
+func TestTopWhenTopElementChangesWithoutEnoughCounters(t *testing.T) {
+	ss := New(2)
+	keys := []string{"a", "b", "a", "a", "a", "c", "c", "c", "a", "b", "b", "b", "b", "b"}
+	for _, k := range keys {
+		err := ss.Process(k)
+		require.NoError(t, err)
+	}
+	topKeys, topCounts := ss.Top(2)
+	require.Equal(t, []string{"b", "a"}, topKeys)
+	require.Equal(t, []int{9, 5}, topCounts)
+}
