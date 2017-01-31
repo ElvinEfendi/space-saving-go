@@ -28,14 +28,15 @@ func (ss *SpaceSaving) Process(key string) error {
 		err = ss.streamSummary.ReplaceWith(key)
 	}
 
-	log.WithFields(log.Fields{"number_of_buckets": ss.streamSummary.bucketList.Len(),
-		"number_of_counters": ss.getNumberOfCounters(),
-		"front_key":          ss.streamSummary.bucketList.Front().Value.(*Bucket).counterList.Back().Value.(*Counter).key,
-		"front_value":        ss.streamSummary.bucketList.Front().Value.(*Bucket).value,
-		"back_key":           ss.streamSummary.bucketList.Back().Value.(*Bucket).counterList.Front().Value.(*Counter).key,
-		"back_value":         ss.streamSummary.bucketList.Back().Value.(*Bucket).value}).
-		Debug("Stats")
-
+	/*
+		log.WithFields(log.Fields{"number_of_buckets": ss.streamSummary.bucketList.Len(),
+			"number_of_counters": ss.getNumberOfCounters(),
+			"front_key":          ss.streamSummary.bucketList.Front().Value.(*Bucket).counterList.Back().Value.(*Counter).key,
+			"front_value":        ss.streamSummary.bucketList.Front().Value.(*Bucket).value,
+			"back_key":           ss.streamSummary.bucketList.Back().Value.(*Bucket).counterList.Front().Value.(*Counter).key,
+			"back_value":         ss.streamSummary.bucketList.Back().Value.(*Bucket).value}).
+			Debug("Stats")
+	*/
 	return err
 }
 
