@@ -3,7 +3,6 @@ package space_saving
 import (
 	"container/list"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 )
 
 type Bucket struct {
@@ -35,12 +34,10 @@ func (ss *StreamSummary) Len() int {
 }
 
 func (ss *StreamSummary) Add(key string) error {
-	log.WithField("key", key).Debug("Add")
 	return ss.addWithCount(key, 1)
 }
 
 func (ss *StreamSummary) Increment(key string) error {
-	log.WithField("key", key).Debug("Increment")
 	counterElement, ok := ss.counters[key]
 	if !ok {
 		return fmt.Errorf("%s does not exist", key)
@@ -72,7 +69,6 @@ func (ss *StreamSummary) ReplaceWith(key string) error {
 	bucketElement := ss.bucketList.Back()
 	counterElement := bucketElement.Value.(*Bucket).counterList.Front()
 	keyToBeReplaced := counterElement.Value.(*Counter).key
-	log.WithFields(log.Fields{"from_key": keyToBeReplaced, "to_key": key}).Debug("ReplaceWith")
 	delete(ss.counters, keyToBeReplaced)
 	ss.removeCounterFromBucket(counterElement)
 	ss.addWithCount(key, bucketElement.Value.(*Bucket).value)
