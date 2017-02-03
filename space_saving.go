@@ -9,7 +9,7 @@ type SpaceSaving struct {
 	maxCountersLen int
 }
 
-func New(maxCountersLen int, verbose bool) *SpaceSaving {
+func New(maxCountersLen int) *SpaceSaving {
 	ss := &SpaceSaving{
 		maxCountersLen: maxCountersLen,
 		streamSummary:  NewStreamSummary(),

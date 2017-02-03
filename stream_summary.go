@@ -21,7 +21,10 @@ type StreamSummary struct {
 }
 
 func NewStreamSummary() *StreamSummary {
-	return &StreamSummary{bucketList: list.New(), counters: make(map[string]*list.Element)}
+	return &StreamSummary{
+		bucketList: list.New(),
+		counters:   make(map[string]*list.Element),
+	}
 }
 
 func (ss *StreamSummary) HasKey(key string) bool {
