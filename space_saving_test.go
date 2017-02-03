@@ -6,7 +6,7 @@ import (
 )
 
 func TestTopWithEnoughCounters(t *testing.T) {
-	ss := New(3)
+	ss := New(3, true)
 	keys := []string{"a", "b", "a", "a", "a", "c", "c", "c", "a"}
 	for _, k := range keys {
 		err := ss.Process(k)
@@ -18,7 +18,7 @@ func TestTopWithEnoughCounters(t *testing.T) {
 }
 
 func TestTopWhenTopElementChanges(t *testing.T) {
-	ss := New(3)
+	ss := New(3, true)
 	keys := []string{"a", "b", "a", "a", "a", "c", "c", "c", "a", "b", "b", "b", "b", "b"}
 	for _, k := range keys {
 		err := ss.Process(k)
@@ -30,7 +30,7 @@ func TestTopWhenTopElementChanges(t *testing.T) {
 }
 
 func TestTopWithoutEnoughCounters(t *testing.T) {
-	ss := New(2)
+	ss := New(2, true)
 	keys := []string{"a", "b", "a", "a", "a", "c", "c", "c", "d", "d"}
 	for _, k := range keys {
 		err := ss.Process(k)
@@ -42,7 +42,7 @@ func TestTopWithoutEnoughCounters(t *testing.T) {
 }
 
 func TestTopWhenTopElementChangesWithoutEnoughCounters(t *testing.T) {
-	ss := New(2)
+	ss := New(2, true)
 	keys := []string{"a", "b", "a", "a", "a", "c", "c", "c", "a", "b", "b", "b", "b", "b"}
 	for _, k := range keys {
 		err := ss.Process(k)

@@ -9,13 +9,18 @@ type SpaceSaving struct {
 	maxCountersLen int
 }
 
-func init() {
-	log.SetLevel(log.DebugLevel)
-}
+func New(maxCountersLen int, verbose bool) *SpaceSaving {
+	if verbose {
+		log.SetLevel(log.DebugLevel)
+	}
+	log.WithFields(log.Fields{"max_counters_len": maxCountersLen, "verbose": verbose}).
+		Info("Initialized a new SpaceSaving instance")
 
-func New(maxCountersLen int) *SpaceSaving {
-	log.WithField("max_counters_len", maxCountersLen).Debug("Initialized a new SpaceSaving instance")
-	return &SpaceSaving{maxCountersLen: maxCountersLen, streamSummary: NewStreamSummary()}
+	ss := &SpaceSaving{
+		maxCountersLen: maxCountersLen,
+		streamSummary:  NewStreamSummary(),
+	}
+	return ss
 }
 
 func (ss *SpaceSaving) Process(key string) error {
@@ -28,15 +33,16 @@ func (ss *SpaceSaving) Process(key string) error {
 		err = ss.streamSummary.ReplaceWith(key)
 	}
 
-	/*
-		log.WithFields(log.Fields{"number_of_buckets": ss.streamSummary.bucketList.Len(),
-			"number_of_counters": ss.getNumberOfCounters(),
-			"front_key":          ss.streamSummary.bucketList.Front().Value.(*Bucket).counterList.Back().Value.(*Counter).key,
-			"front_value":        ss.streamSummary.bucketList.Front().Value.(*Bucket).value,
-			"back_key":           ss.streamSummary.bucketList.Back().Value.(*Bucket).counterList.Front().Value.(*Counter).key,
-			"back_value":         ss.streamSummary.bucketList.Back().Value.(*Bucket).value}).
-			Debug("Stats")
-	*/
+	log.WithFields(log.Fields{
+		"number_of_buckets":  ss.streamSummary.bucketList.Len(),
+		"number_of_counters": ss.streamSummary.Len(),
+		"front_key": ss.streamSummary.bucketList.Front().Value.(*Bucket).
+			counterList.Back().Value.(*Counter).key,
+		"front_value": ss.streamSummary.bucketList.Front().Value.(*Bucket).value,
+		"back_key": ss.streamSummary.bucketList.Back().Value.(*Bucket).
+			counterList.Front().Value.(*Counter).key,
+		"back_value": ss.streamSummary.bucketList.Back().Value.(*Bucket).value}).Debug("Stats")
+
 	return err
 }
 
@@ -53,13 +59,4 @@ func (ss *SpaceSaving) Top(k int) ([]string, []int) {
 		}
 	}
 	return keys, counts
-}
-
-func (ss *SpaceSaving) getNumberOfCounters() int {
-	count := 0
-	for bucketElement := ss.streamSummary.bucketList.Front(); bucketElement != nil; bucketElement = bucketElement.Next() {
-		bucket := bucketElement.Value.(*Bucket)
-		count += bucket.counterList.Len()
-	}
-	return count
 }
